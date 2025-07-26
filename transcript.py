@@ -1,3 +1,5 @@
+# NOT PART OF THE ACTUAL CODE, JUST USED THIS FILE TO TRY OUT SOME THINGS
+
 from faster_whisper import WhisperModel
 
 def build_transcript():
