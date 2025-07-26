@@ -1,9 +1,9 @@
 import streamlit as st
-import re
 import urllib.parse as urlparse
 import google.generativeai as genai
 from cryptography.fernet import Fernet
-
+from faster_whisper import WhisperModel
+import re, os, yt_dlp
 
 # --- Page Setup ---
 st.set_page_config(page_title="VocorAI", layout="wide")
@@ -110,6 +110,20 @@ def show_landing():
         if url_input and is_valid_youtube_url(url_input):
             st.session_state.messages = []
             st.query_params = {"page": ["chat"], "youtube_url": [url_input.strip()]}
+            ydl_opts = {
+                'format': 'worstaudio/worst',  # Selects the lowest quality audio
+                'postprocessors': [{
+                    'key': 'FFmpegExtractAudio',
+                    'preferredcodec': 'mp3',
+                    'preferredquality': '64',  # Lower bitrate for faster conversion
+                }],
+                'outtmpl': 'audio',  # Output file name
+                'quiet': True,
+                'no_warnings': True,
+            }
+
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                ydl.download([url_input])
             st.session_state.url_error = False
         elif url_input:
             st.session_state.url_error = True
@@ -320,7 +334,10 @@ def show_landing():
     st.markdown("</div></div></div>", unsafe_allow_html=True)
 
 # --- Chat Page ---
+
 def show_chat():
+    global create_script
+    global saved_transcript
     st.markdown(
     """
     <style>
@@ -339,64 +356,7 @@ def show_chat():
 )
     
 
-
-    
-    st.sidebar.title("⏣ Translated Transcript")
-    st.sidebar.markdown(
-        """
-    the accurate translation for this video, brought to you by **Bridge AI**.
-
-    [0.00s - 7.40s]  Breaking news, Detroit rapper Eminem cancels his sold-out European tour to check himself
-    [7.40s - 10.72s]  into rehab after admitting an addiction to sleep medication.
-    [10.72s - 14.48s]  We'll have more on this story as it develops.
-    [14.48s - 19.52s]  Shady Records recording artist Obi-Trice has apparently survived a gunshot to the head
-    [19.52s - 23.72s]  in what appears to be a random drive-by shooting on Detroit's Lodge Freeway.
-    [23.72s - 28.68s]  Meanwhile, Eminem is rumored to be remarrying his ex-wife and childhood sweetheart Kimberly
-    [28.68s - 30.32s]  Mathers.
-    [30.32s - 35.40s]  The on-and-off-again relationship with current wife Kim Mathers appears to be off again.
-    [35.40s - 40.60s]  Just months after reconciling and remarrying, the rapper has filed for divorce for the second
-    [40.60s - 43.80s]  time, ending their marriage once again.
-    [43.80s - 47.88s]  Updating a story we brought you earlier about Gunfire and after Hours Club, we've learned
-    [47.88s - 51.20s]  that the rapper Proof has been fatally shot.
-    [51.20s - 55.80s]  Proof's real name is Deshaun Hulton, longtime best friend of Eminem and a member of the
-    [55.80s - 56.80s]  rap group D-12.
-    [56.80s - 81.80s]  Police say they're still trying to figure out the motive for the shooting.
-    [81.80s - 88.60s]  So this is it, this is what I wish for, just isn't how I envisioned it, famed to the point
-    [88.60s - 89.60s]  of imprisonment.
-    [89.60s - 93.80s]  I just thought that should it be different, but something changed the minute that I got
-    [93.80s - 94.80s]  a whip of it.
-    [94.80s - 99.60s]  I started to inhale it, smell it, started sniffing it, and it became my cocaine.
-    [99.60s - 104.04s]  I just couldn't quit, I just wanted a little bit, then it turned me to a monster.
-    [104.04s - 107.24s]  I became a hypocrite, concert after concert.
-    [107.24s - 112.72s]  I was raking in the door, rolling in green, had the game hemmed up like a sewing machine.
-    [112.72s - 117.40s]  But I was losing my freedom, there was no one for me, to not go and be seen, it's just
-    [117.40s - 118.40s]  going to be me.
-    [118.40s - 123.08s]  And there was no one between, you're either love that I hated, every CD, critics gave it
-    [123.08s - 124.08s]  a three than three.
-    [124.08s - 129.48s]  Years later they go back and re-rated, and call it Slim Shady LP, the greatest, the
-    [129.48s - 134.52s]  Marshall Mathers was the classic, Eminem show was fantastic, but I'm gorgeous, didn't
-    [134.52s - 136.24s]  have the caliber to match it.
-    [136.24s - 141.08s]  I guess enough time just ain't past yet, a couple more years, that shit'll be ill-matic
-    [141.08s - 146.76s]  and eight years later I'm still at it, divorce, remarried, a felon, a father, sleeping pill
-    [146.76s - 151.96s]  addict, and this is real talk, I feel like the incredible Hulk, my back has been broken,
-    [151.96s - 152.96s]  I can still hold.
-    [152.96s - 157.68s]  So be careful what you wish for, cause you just might get it, and if you get it then
-    [157.68s - 162.68s]  you just might not know what to do with it, cause it might just come back on you
-    [162.68s - 163.68s]  tenfold.
-    [163.68s - 181.24s]  I gotta let it from a fan set, he's been praying for me, every day and for some reason it's
-    [181.24s - 186.24s]  been weighing on my mind heavy, cause I don't read every letter I get, but something told
-    [186.24s - 190.24s]  me to go ahead and open it, but why would someone pray for you when they don't know
-    [190.24s - 191.24s]  you?
-    [191.24s - 195.80s]  I pray for me when I was local, and as I lay these vocals, I think of all the shit I had
-    [195.80s - 200.64s]  to go through, just to get to where I'm at, I've already told you at least a thousand times
-    [200.64s - 205.24s]  in these rhymes, I appreciate the prayer, but I've already got, got on my side, and it's
-    [205.24s - 210.40s]  been one hell of a ride hasn't it, just watching it from an opposite standpoint, man, boy
-    [210.40s - 215.96s]  it's got to look nuts, and it's the only word I can think of right now, one half
-    [215.96s - 220.36s]  to describe this shit, it's just like a vibe you get, go ahead and pop to it, just
-
-End of transcript
-    """
-    )
+    st.sidebar.title("⏣ Transcript")
     st.markdown(
     """
     <style>
@@ -447,6 +407,7 @@ End of transcript
 )
 
 
+
     video_id = extract_video_id(youtube_url)
     if video_id:
         st.markdown(
@@ -461,7 +422,43 @@ End of transcript
         )
     else:
         st.info("No valid YouTube video to display.")
-    genai.configure(api_key=secrets['API'])
+    if create_script == False:
+        if os.path.exists("audio.mp3"):
+            translated_lan = st.sidebar.text_input("Enter translation language:",disabled=create_script)
+            if translated_lan != "":
+                model_size = "small"
+
+                model = WhisperModel(model_size, device="cpu", compute_type="int8")
+
+                segments, info = model.transcribe("audio.mp3", beam_size=5)
+
+                print("Detected language '%s' with probability %f" % (info.language, info.language_probability))
+
+                transcript = ""
+                for segment in segments:
+                    print("[%.2fs - %.2fs] %s \n" % (segment.start, segment.end, segment.text))
+                    transcript += "[%.2fs - %.2fs] %s \n" % (segment.start, segment.end, segment.text)
+                st.sidebar.markdown(transcript.strip("///"))
+                st.sidebar.markdown("Translated Transcript")
+                genai.configure(api_key="AIzaSyDY82-5HEFDBdY3P8xXLs72-7VSD6Rp-hM")
+                model = genai.GenerativeModel("gemini-1.5-flash")
+                response = model.generate_content(f"{transcript}. the language the text should be translated to is {translated_lan}. if you cannot detect what language the user wants, just use spanish. translate this and keep the same structure (have the timestamp and text). add a '\n' after every sentence. DO NOT SAY ANYTHING ELSE EXCEPT FOR THE TRANSCRIPT TRANSLATION")
+                reply = response.text.strip()
+                create_script = True
+                st.sidebar.text = reply
+                st.sidebar.markdown(reply)
+                saved_transcript = f"{transcript}\nTranslated Transcript\n{reply}"
+                print(saved_transcript)
+                with open("saved.txt", "w") as f:
+                    f.write(f"{transcript} \n Translated Transcript\n \n {reply}")
+                os.remove("audio.mp3")
+                f.close()
+
+        else:
+            with open("saved.txt", "r") as f:
+                content = f.read()
+            st.sidebar.markdown(content)
+
     # Initialize chat model once (recommended)
   # To refresh and show updated history
 # Set up Streamlit session state
@@ -514,7 +511,7 @@ End of transcript
                 model = genai.GenerativeModel("gemini-1.5-flash")
                 history = "gAAAAABog5lEytN3NaiMUa4o7sHjSNINK71IpeaMgPBl2c9PzaGstDDs-gibreMAtxPzklgy4uLF3Z7iUgtLEUiP9VqVjl9JPrl9zw9AwSoVH7A4t5c9l3DejS8N5_adKW83-3yLc363uY25wajiaQqoH_6lFtQGz9sn6q-Zt6B1Q8KvU24WMk6ZH8FtHlhNdkeqgCDRjQMUrlniH9hHQBv-kDS7jNoD73KZrjKVoaBvGzjD9BS52yTD9_Nqcc73zMe2mp2dCg6GS6RhPHJ7yWuOa80tHgsZXDX1iMXXh1mMgx0O-6S7s-6kz3WVJ4xoXacDYngoXTR3QS7fSBmBnhCPpFH307uvqSzNEJIcZIckedPwzxAFokusy9kGf6ibhhVuVolwFecbxamqzGir17AD0KWTC_QSgLeku91_s9SRuMEqhiV8MMjzXISK_pZos2lhv3Z2MAaWWiNEIGkfoPvlrcicta17ma8raqT7nPr7GY7Oa_Y9Yox6uaMr8N6lSOIvPjqG9wCk8ZAurRxI7f8tLvHrLVuju7AVkyc_zPNtw9RuwN6-80I="
                 cipher_suite = Fernet(load_or_create_key())
-                response = model.generate_content(f"{cipher_suite.decrypt(history.encode()).decode()},{st.session_state.messages}. my current text is {message}. please write your response")
+                response = model.generate_content(f"{cipher_suite.decrypt(history.encode()).decode()},THE TRANSCRIPT FOR THE VIDEO IS {transcript},{st.session_state.messages}. my current text is {message}. please write your response")
                 reply = response.text.strip()
                 st.session_state.messages.append({"role": "assistant", "content": reply})  # Temporary placeholder
             except Exception as e:
@@ -543,6 +540,9 @@ End of transcript
 
 
 # --- Main Routing ---
+global create_script
+global saved_transcript
+create_script = False
 if current_page == "home":
     show_landing()
 elif current_page == "chat":
