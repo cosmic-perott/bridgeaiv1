@@ -440,7 +440,7 @@ def show_chat():
                     transcript += "[%.2fs - %.2fs] %s \n" % (segment.start, segment.end, segment.text)
                 st.sidebar.markdown(transcript.strip("///"))
                 st.sidebar.markdown("Translated Transcript")
-                genai.configure(api_key="AIzaSyDY82-5HEFDBdY3P8xXLs72-7VSD6Rp-hM")
+                genai.configure(api_key=secrets['API'])
                 model = genai.GenerativeModel("gemini-1.5-flash")
                 response = model.generate_content(f"{transcript}. the language the text should be translated to is {translated_lan}. if you cannot detect what language the user wants, just use spanish. translate this and keep the same structure (have the timestamp and text). add a '\n' after every sentence. DO NOT SAY ANYTHING ELSE EXCEPT FOR THE TRANSCRIPT TRANSLATION")
                 reply = response.text.strip()
@@ -477,10 +477,7 @@ def show_chat():
         st.session_state.reset_input = False
 
     def load_or_create_key():
-        key_file = "secret.key"    
-        with open(key_file, "rb") as f:
-            key = f.read()
-        return key
+        key = secrets['KEY']
     # Display chat messages
     chat_container = st.empty()
     with chat_container.container():
