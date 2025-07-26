@@ -306,17 +306,14 @@ def show_landing():
                     <div class="feature-item" title="Auto transcribe and translate">
                         <div class="feature-text">Auto Transcription & Translation</div>
                         <div class="feature-icon">🎤︎</div>
-                        <div class="feature-text">some kind of shtty explanation about wtf this part is about and how the AI does this</div>
                     </div>
                     <div class="feature-item" title="Natural conversation with AI">
                         <div class="feature-text">Natural Language Chat</div>
                         <div class="feature-icon">❝❞</div>
-                        <div class="feature-text">some kind of shtty explanation about wtf this part is about and how the AI does this</div>
                     </div>
                     <div class="feature-item" title="Learn beyond language limits">
                         <div class="feature-text">Break Language Barriers</div>
                         <div class="feature-icon">➤</div>
-                        <div class="feature-text">some kind of shtty explanation about wtf this part is about and how the AI does this</div>
                     </div>
                 </div>
                 <div class="url-input-container">
