@@ -165,7 +165,7 @@ def show_landing():
             value=youtube_url,
             key="youtube_url_input",
             help="Paste a valid YouTube video URL here",
-            placeholder="https://www.youtube.com/watch?v=example",
+            placeholder="WE HIGHLY RECOMMEND YOU RUN THIS LOCALLY",
             on_change=on_url_change,
         )
 
